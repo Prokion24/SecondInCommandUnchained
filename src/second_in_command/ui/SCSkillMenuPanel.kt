@@ -137,7 +137,8 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
         var scrollerPanel = Global.getSettings().createCustom(width - 20, 400f, null)
         subpanel.addComponent(scrollerPanel)
         scrollerPanel.position.inTL(0f, 25f)
-        if (SCSettings.enable4thSlot) scrollerPanel.position.inTL(-10f, 25f)
+        val additionalOffset = if (SCSettings.additionalSlots > 0) -10f else 0f
+        scrollerPanel.position.inTL(additionalOffset, 25f)
 
 
 
@@ -146,27 +147,9 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
         if (!title) {
 
             subelement.addSpacer(23f)
-
-            addAptitudeRowParent(subelement, data.getOfficerInSlot(0), 0)
-
-            subelement.addSpacer(30f)
-
-            addAptitudeRowParent(subelement, data.getOfficerInSlot(1), 1)
-
-            subelement.addSpacer(30f)
-
-            addAptitudeRowParent(subelement, data.getOfficerInSlot(2), 2)
-
-            if (SCSettings.enable4thSlot) {
-                subelement.addSpacer(30f)
-
-                addAptitudeRowParent(subelement, data.getOfficerInSlot(3), 3)
-
-                subelement.addSpacer(23f)
-
-                subelement.addLunaElement(0f, 0f).advance {
-                    lastScrollerY = subelement.externalScroller.yOffset
-                }
+            for (slotId in 0 until (3 + SCSettings.additionalSlots)) {
+                if (slotId > 0) subelement.addSpacer(30f)
+                addAptitudeRowParent(subelement, data.getOfficerInSlot(slotId), slotId)
             }
 
         } else {
@@ -177,7 +160,7 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
         }
 
         scrollerPanel.addUIElement(subelement)
-        if (SCSettings.enable4thSlot) {
+        if (SCSettings.additionalSlots > 0) {
             subelement.externalScroller.yOffset = lastScrollerY
         }
 
@@ -212,20 +195,29 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
 
         var isProgressionMode = SCSettings.progressionMode
         var level = Global.getSector().playerPerson.stats.level
-        var progressionLevel = when(slotId) {
-            0 -> SCSettings.progressionSlot1Level!!
-            1 -> SCSettings.progressionSlot2Level!!
-            2 -> SCSettings.progressionSlot3Level!!
-            3 -> SCSettings.progressionSlot4Level!!
-            else -> 0
+        val isLocked = when {
+            !isProgressionMode -> false // Все слоты разблокированы, если прогрессивная система отключена
+            slotId == 0 -> level < SCSettings.progressionSlot1Level!!
+            slotId == 1 -> level < SCSettings.progressionSlot2Level!!
+            slotId == 2 -> level < SCSettings.progressionSlot3Level!!
+            else -> level < (SCSettings.progressionSlot4Level!!)
         }
-        var isLocked = officer == null && isProgressionMode && level < progressionLevel
         var officerPickerElement = SCOfficerPickerElement(officer?.person, color, subelement, 96f, 96f)
         officerPickerElement.isProgressionLocked = isLocked
 
 
         var menu = this
         officerPickerElement.onClick {
+            // Добавляем проверку на null в самом начале
+            if (officer == null) {
+                // Логика для пустого слота
+                if (it.isRMBEvent) return@onClick // Правый клик на пустом слоте - ничего не делаем
+
+                var pickerMenu = SCOfficerPickerMenuPanel(menu, officerPickerElement, subpanelParent, slotId, data, isAtColony)
+                pickerMenu.init()
+                officerPickerElement.playClickSound()
+                return@onClick
+            }
             if (officerPickerElement.isInEditMode) {
                 //officerPickerElement.playSound("ui_char_can_not_increase_skill_or_aptitude", 1f, 1f)
                 return@onClick
@@ -237,7 +229,7 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
             }*/
 
             if (SCUtils.isAssociatesBackgroundActive()) {
-                openResrictedOfficerManagementPanel(panel, subpanelParent, officer!!)
+                openResrictedOfficerManagementPanel(panel, subpanelParent, officer)
                 officerPickerElement.playClickSound()
                 return@onClick
             }
@@ -271,8 +263,20 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
 
             //Dont allow editing a locked slot
             if (isLocked) {
-                officerPickerElement.playSound("ui_char_can_not_increase_skill_or_aptitude", 1f, 1f)
-                return@onClick
+                val requiredLevel = when(slotId) {
+                    0 -> SCSettings.progressionSlot1Level!!
+                    1 -> SCSettings.progressionSlot2Level!!
+                    2 -> SCSettings.progressionSlot3Level!!
+                    else -> SCSettings.progressionSlot4Level!!
+                }
+
+                subelement.addTooltip(officerPickerElement.elementPanel, TooltipMakerAPI.TooltipLocation.BELOW, 350f) { tooltip ->
+                    tooltip.addPara("Slot locked (Requires level $requiredLevel)", 0f,
+                        Misc.getTextColor(), Misc.getHighlightColor(), "$requiredLevel")
+                }
+            } else {
+                subelement.addTooltipTo(OfficerTooltipCreator(officer, isAtColony, false),
+                    officerPickerElement.elementPanel, TooltipMakerAPI.TooltipLocation.RIGHT)
             }
 
             var pickerMenu = SCOfficerPickerMenuPanel(menu, officerPickerElement, subpanelParent, slotId, data, isAtColony)
@@ -328,9 +332,15 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
         if (!isLocked) {
             subelement.addTooltipTo(OfficerTooltipCreator(officer, isAtColony, false), officerPickerElement.elementPanel, TooltipMakerAPI.TooltipLocation.RIGHT)
         } else {
+            val requiredLevel = when(slotId) {
+                0 -> SCSettings.progressionSlot1Level!!
+                1 -> SCSettings.progressionSlot2Level!!
+                2 -> SCSettings.progressionSlot3Level!!
+                else -> SCSettings.progressionSlot4Level!! // 5 - шаг уровней для доп. слотов
+            }
             subelement.addTooltip(officerPickerElement.elementPanel, TooltipMakerAPI.TooltipLocation.BELOW, 350f) { tooltip ->
-                tooltip.addPara("This slot is locked until the player has reached level $progressionLevel and can not be used until then.", 0f
-                ,Misc.getTextColor(), Misc.getHighlightColor(), "$progressionLevel")
+                tooltip.addPara("This slot is locked until the player has reached level $requiredLevel and can not be used until then.", 0f
+                    ,Misc.getTextColor(), Misc.getHighlightColor(), "$requiredLevel")
             }
         }
 
@@ -391,7 +401,7 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
         for (section in sections) {
 
             var isLastSection = sections.last() == section
-            var canOnlyChooseOne = !section.canChooseMultiple
+            val canOnlyChooseOne = if (SCSettings.aptitudeGroupRestriction) false else !section.canChooseMultiple
 
             var firstSkillThisSection: SkillWidgetElement? = null
             var usedWidth = 0f
@@ -419,7 +429,10 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
                 section.activeSkillsInUI.add(skillElement)
                 usedWidth += 72f
 
-                var tooltip = SCSkillTooltipCreator(data, skillPlugin, aptitudePlugin, section.requiredPreviousSkills, !section.canChooseMultiple)
+                var tooltip = SCSkillTooltipCreator(data, skillPlugin, aptitudePlugin,
+                    if (SCSettings.aptitudeGroupRestriction) 0 else section.requiredPreviousSkills,
+                    if (SCSettings.aptitudeGroupRestriction) false else !section.canChooseMultiple
+                )
                 subelement.addTooltipTo(tooltip, skillElement.elementPanel, TooltipMakerAPI.TooltipLocation.BELOW)
                 section.tooltips.add(tooltip)
 
@@ -455,7 +468,7 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
 
                 }
 
-                if (canOnlyChooseOne) {
+                if (!SCSettings.aptitudeGroupRestriction && canOnlyChooseOne) {
                     var underline = SkillUnderlineElement(color, 2f, subelement, usedWidth)
                     underline.position.belowLeft(firstSkillThisSection.elementPanel, 2f)
                 }
@@ -618,8 +631,7 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
                     skillElement.canChangeState = false
                 }
             }
-
-            if (!section.canChooseMultiple) {
+            if (!SCSettings.aptitudeGroupRestriction && !section.canChooseMultiple) {
                 if (section.activeSkillsInUI.any { it.activated }) {
                     for (skillElement in section.activeSkillsInUI) {
                         if (skillElement.preAcquired) continue
@@ -661,6 +673,10 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
     }
 
     fun openResrictedOfficerManagementPanel(panel: CustomPanelAPI, subpanelParent: CustomPanelAPI, officer: SCOfficer) {
+        if (officer == null) {
+            Global.getLogger(this.javaClass).warn("Attempted to open management panel for null officer")
+            return
+        }
         var plugin = AssosciatesManagePanelPlugin(panel)
 
         var width = 316f

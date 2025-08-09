@@ -135,7 +135,7 @@ class SCModPlugin : BaseModPlugin() {
             AssociatesBackground.fillMissingSlot()
         }
 
-        SCUtils.getPlayerData().remove4thOfficer()
+        SCUtils.getPlayerData().removeExtraOfficers()
     }
 
     override fun onNewGame() {

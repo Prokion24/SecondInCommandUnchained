@@ -11,6 +11,8 @@ import second_in_command.misc.SCSettings
 
 class SCOfficer(var person: PersonAPI, var aptitudeId: String) {
 
+    var XASP = SCSettings.xadditionalSkillpoints
+
     companion object {
         var inactiveXPMult = 0.33f
         var baseXPPerLevel = 1000f
@@ -18,7 +20,7 @@ class SCOfficer(var person: PersonAPI, var aptitudeId: String) {
 
     var activeSkillIDs = mutableSetOf<String>()
 
-    var skillPoints = 1
+    var skillPoints = 1 + XASP
     private var experiencePoints: Float = 0f
     private var level: Int = 1
 
@@ -124,14 +126,14 @@ class SCOfficer(var person: PersonAPI, var aptitudeId: String) {
 
     fun resetLevel() {
         level = 1
-        skillPoints = 1
+        skillPoints = 1 + XASP
         experiencePoints = 0f
     }
 
     fun increaseLevel(amount: Int) {
         for (i in 0 until amount) {
             if (level >= getMaxLevel()) break
-            skillPoints += 1
+            skillPoints += 1 + XASP
             level += 1
         }
         experiencePoints = 0f
@@ -151,7 +153,7 @@ class SCOfficer(var person: PersonAPI, var aptitudeId: String) {
 
         experiencePoints = diff
         level += 1
-        skillPoints += 1
+        skillPoints += 1 + XASP
 
         levelUpIfNeeded()
     }

@@ -41,8 +41,12 @@ class SCSettings : LunaSettingsListener {
             1440000f, //LV4*/
         )
 
+        var additionalSlots = LunaSettings.getInt(SCUtils.MOD_ID, "sc_additionalSlots") ?: 0
+        var aptitudeCategoryRestriction = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_aptitudeCategoryRestriction")!!
+        var aptitudeGroupRestriction = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_aptitudeGroupRestriction")!!
+        var xadditionalSkillpoints = LunaSettings.getInt(SCUtils.MOD_ID, "sc_xadditionalSkillpoints") ?: 0
 
-        var enable4thSlot = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_enable4thSlot")!!
+        // var enable4thSlot = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_enable4thSlot")!!
         var additionalLevel = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_enableAdditionalLevel")!!
         var xpGainMult = LunaSettings.getFloat(SCUtils.MOD_ID, "sc_officerXPMult")!!
 
@@ -89,13 +93,10 @@ class SCSettings : LunaSettingsListener {
     fun applySettings() {
         xpGainMult = LunaSettings.getFloat(SCUtils.MOD_ID, "sc_officerXPMult")!!
 
-        enable4thSlot = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_enable4thSlot")!!
-        if (Global.getCurrentState() == GameState.CAMPAIGN) {
-            if (Global.getSettings().modManager.isModEnabled("nexerelin")) {
-                AssociatesBackground.fillMissingSlot()
-            }
-            SCUtils.getPlayerData().remove4thOfficer()
-        }
+        // enable4thSlot = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_enable4thSlot")!!
+
+        additionalSlots = LunaSettings.getInt(SCUtils.MOD_ID, "sc_additionalSlots") ?: 0
+        if (additionalSlots > 25) additionalSlots = 25
         additionalLevel = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_enableAdditionalLevel")!!
         progressionMode = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_progressionMode")!!
 

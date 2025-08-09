@@ -66,6 +66,7 @@ object PlayerLevelEffects {
         var player = Global.getSector().playerPerson
         var playerLevel = player.stats.level
 
+
         if (playerLevel >= 10) {
             data.commander.stats.officerNumber.modifyFlat("sc_level_up_effect", 2f)
         }

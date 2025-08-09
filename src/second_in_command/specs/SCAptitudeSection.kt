@@ -5,7 +5,7 @@ import second_in_command.ui.elements.SkillGapElement
 import second_in_command.ui.elements.SkillWidgetElement
 import second_in_command.ui.tooltips.SCSkillTooltipCreator
 
-class SCAptitudeSection(var canChooseMultiple: Boolean, var requiredPreviousSkills: Int, var soundId: String) {
+class SCAptitudeSection(var canChooseMultiple: Boolean, var requiredPreviousSkills: Int = 0, var soundId: String) {
     private var skills = ArrayList<String>()
 
     var uiGap: SkillGapElement? = null

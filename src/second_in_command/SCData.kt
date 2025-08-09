@@ -29,31 +29,18 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     var commander = fleet.commander
 
     private var officers = ArrayList<SCOfficer>()
-    private var activeOfficers = ArrayList<SCOfficer?>()
+    private var activeOfficers = MutableList<SCOfficer?>(3 + SCSettings.additionalSlots) { null }
 
     init {
-
-
+        removeExtraOfficers()
     }
 
     fun init() {
-
-        //So that the fleet itself can advance its skills.
         fleet.addScript(this)
 
         if (commander == null) {
             commander = faction.createRandomPerson()
         }
-
-
-
-        activeOfficers.add(null)
-        activeOfficers.add(null)
-        activeOfficers.add(null)
-        activeOfficers.add(null)
-
-        //Causes a ConcurrentModificationError with MoreMilitaryMissions for some reason
-        //fleet.addEventListener(this)
 
         officers.clear()
 
@@ -61,73 +48,31 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
         isPlayer = !isNPC
 
         if (!isNPC) {
-            //For Beta
-           /* var aptitudes = SCSpecStore.getAptitudeSpecs().map { it.getPlugin() }
-            for (aptitude in aptitudes) {
-                if (aptitude.getId(<<) == "sc_fake_combat_aptitude") continue
-
-                var officer = SCUtils.createRandomSCOfficer(aptitude.getId())
-                addOfficerToFleet(officer)
-            }*/
+            // Player fleet initialization
         }
         else {
-
             clearCommanderSkills()
 
             if (SCSettings.canNPCsSpawnWithSkills && !fleet.hasTag("sc_do_not_generate_skills")) {
                 generateNPCOfficers()
             }
-
         }
 
-
-        //Moved here, away from the inflator, in case this class only got created on interaction
         applyControllerHullmod()
     }
 
-
-
     fun getActiveOfficers() = activeOfficers.filterNotNull()
 
-    fun remove4thOfficer() {
-        if (!SCSettings.enable4thSlot && activeOfficers.filterNotNull().size > 3) {
-            setOfficerInSlot(3, null)
+    fun removeExtraOfficers() {
+        val maxSlots = 3 + SCSettings.additionalSlots
+        if (activeOfficers.size > maxSlots) {
+            activeOfficers = activeOfficers.subList(0, maxSlots).toMutableList()
         }
     }
 
     fun generateNPCOfficers() {
-
         NPCOfficerGenerator.generateForFleet(this, fleet)
-
-       /* var officer1 = SCUtils.createRandomSCOfficer("sc_tactical", faction)
-        addOfficerToFleet(officer1)
-        officer1.addSkill("sc_tactical_spotters")
-        officer1.addSkill("sc_tactical_rapid_response")
-        officer1.addSkill("sc_tactical_pristine_condition")
-        setOfficerInSlot(0, officer1)
-
-        var officer2 = SCUtils.createRandomSCOfficer("sc_wolfpack", faction)
-        addOfficerToFleet(officer2)
-        officer2.addSkill("sc_wolfpack_safe_recovery")
-        officer2.addSkill("sc_wolfpack_low_profile")
-        officer2.addSkill("sc_wolfpack_coordinated_maneuvers")
-        officer2.addSkill("sc_wolfpack_jumpstart")
-        officer2.addSkill("sc_wolfpack_trapped_prey")
-        setOfficerInSlot(1, officer2)
-
-        var officer3 = SCUtils.createRandomSCOfficer("sc_support", faction)
-        addOfficerToFleet(officer3)
-        officer3.addSkill("sc_support_huntsman")
-        setOfficerInSlot(2, officer3)*/
-
-        //Generate portraits & name based on faction
-
-
-
     }
-
-
-
 
     fun getOfficersInFleet() : ArrayList<SCOfficer> {
         return ArrayList(officers)
@@ -138,12 +83,12 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
         officers.add(officer)
 
         if (this.isPlayer) {
-            CodexHandler.reportPlayerAwareOfThing(officer.aptitudeId, CodexHandler.APTITUDE_SET, CodexHandler.getAptitudEntryId(officer.aptitudeId),true)
+            CodexHandler.reportPlayerAwareOfThing(officer.aptitudeId, CodexHandler.APTITUDE_SET,
+                CodexHandler.getAptitudEntryId(officer.aptitudeId), true)
         }
     }
 
     fun removeOfficerFromFleet(officer: SCOfficer) {
-
         if (officer.isAssigned()) {
             setOfficerInSlot(getOfficersAssignedSlot(officer)!!, null)
         }
@@ -157,16 +102,16 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     }
 
     fun setOfficerInSlot(slotIndex: Int, officer: SCOfficer?) {
+        if (slotIndex < 0 || slotIndex >= activeOfficers.size) return
         var officerInSlot = getOfficerInSlot(slotIndex)
         activeOfficers[slotIndex] = officer
 
         if (officerInSlot != null) {
             var skills = officerInSlot.getActiveSkillPlugins()
-
             for (skill in skills) {
                 skill.onDeactivation(this)
             }
-            if (fleet.fleetData != null) fleet.fleetData.membersListCopy.forEach { it.updateStats() } //Calling it with FleetData null may cause issues
+            if (fleet.fleetData != null) fleet.fleetData.membersListCopy.forEach { it.updateStats() }
         }
 
         if (officer != null) {
@@ -174,7 +119,7 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
             for (skill in skills) {
                 skill.onActivation(this)
             }
-            if (fleet.fleetData != null) fleet.fleetData.membersListCopy.forEach { it.updateStats() } //Calling it with FleetData null may cause issues
+            if (fleet.fleetData != null) fleet.fleetData.membersListCopy.forEach { it.updateStats() }
         }
     }
 
@@ -183,83 +128,51 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     }
 
     fun setOfficerInEmptySlotIfAvailable(officer: SCOfficer) {
-
-        //Check for incompatibilities
+        // Check for incompatibilities
         var categories = officer.getAptitudePlugin().categories
         for (other in getActiveOfficers()) {
-
-            if (other.aptitudeId == officer.aptitudeId) return //Dont allow multiple XOs of the same aptitude
-
+            if (other.aptitudeId == officer.aptitudeId) return
             var otherCategories = other.getAptitudePlugin().categories
-
             if (categories.any { otherCategories.contains(it) }) {
                 return
             }
         }
 
-        if (getOfficerInSlot(0) == null) {
-            setOfficerInSlot(0, officer)
-        }
-        else if (getOfficerInSlot(1) == null) {
-            setOfficerInSlot(1, officer)
-        }
-        else if (getOfficerInSlot(2) == null) {
-            setOfficerInSlot(2, officer)
-        }
-        else if (getOfficerInSlot(3) == null && SCSettings.enable4thSlot) {
-            setOfficerInSlot(3, officer)
+        // Find first empty slot
+        for (i in 0 until activeOfficers.size) {
+            if (getOfficerInSlot(i) == null) {
+                setOfficerInSlot(i, officer)
+                return
+            }
         }
     }
 
     fun getAssignedOfficers() : ArrayList<SCOfficer?> {
-        if (activeOfficers == null) {
-            return ArrayList()
-        }
         return ArrayList(activeOfficers)
     }
-
-
 
     fun getAllActiveSkillsPlugins() : List<SCBaseSkillPlugin> {
         return getAssignedOfficers().filter { it != null }.flatMap { it!!.getActiveSkillPlugins() }
     }
 
     fun isSkillActive(skillId: String) : Boolean {
-        return getAssignedOfficers().filter { it != null }.flatMap { it!!.getActiveSkillPlugins().map { it.getId() } }.contains(skillId)
+        return getAssignedOfficers().filter { it != null }
+            .flatMap { it!!.getActiveSkillPlugins().map { it.getId() } }
+            .contains(skillId)
     }
 
     fun getOfficersAssignedSlot(officer: SCOfficer) : Int? {
         if (!officer.isAssigned()) return null
-
-        if (getOfficerInSlot(0) == officer) return 0
-        if (getOfficerInSlot(1) == officer) return 1
-        if (getOfficerInSlot(2) == officer) return 2
-        if (getOfficerInSlot(3) == officer) return 3
-
-        return null
+        return activeOfficers.indexOfFirst { it == officer }.takeIf { it != -1 }
     }
 
+    override fun isDone(): Boolean = false
 
-    override fun isDone(): Boolean {
-        return false
-    }
-
-
-    override fun runWhilePaused(): Boolean {
-        return true
-    }
-
+    override fun runWhilePaused(): Boolean = true
 
     override fun advance(amount: Float) {
-
-        //Has to be done to avoid ConcurrentModificationExceptions errors
         if (!fleet.eventListeners.contains(this) && !fleet.isDespawning) {
             fleet.addEventListener(this)
-        }
-
-        //1.3.0 Update fix
-        if (activeOfficers.size <= 3) {
-            activeOfficers.add(null)
         }
 
         for (skill in getAllActiveSkillsPlugins()) {
@@ -269,13 +182,10 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
         if (isPlayer) {
             PlayerLevelEffects.advance(this, amount)
         }
-
     }
 
-
-
-    //Run deactivation on despawn
-    override fun reportFleetDespawnedToListener(fleet: CampaignFleetAPI?, reason: CampaignEventListener.FleetDespawnReason?, param: Any?) {
+    override fun reportFleetDespawnedToListener(fleet: CampaignFleetAPI?,
+                                                reason: CampaignEventListener.FleetDespawnReason?, param: Any?) {
         if (this.fleet == fleet) {
             var skills = getAllActiveSkillsPlugins()
             for (skill in skills) {
@@ -284,9 +194,8 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
         }
     }
 
-
-    override fun reportBattleOccurred(fleet: CampaignFleetAPI?, primaryWinner: CampaignFleetAPI?, battle: BattleAPI?) {
-
+    override fun reportBattleOccurred(fleet: CampaignFleetAPI?,
+                                      primaryWinner: CampaignFleetAPI?, battle: BattleAPI?) {
     }
 
     fun applyControllerHullmod() {
@@ -294,20 +203,13 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
         for (member in fleet.fleetData.membersListCopy) {
             if (!member.variant.hasHullMod("sc_skill_controller")) {
                 if (member.variant.source != VariantSource.REFIT) {
-                    var variant = member.variant.clone();
-                    variant.originalVariant = null;
+                    var variant = member.variant.clone()
+                    variant.originalVariant = null
                     variant.hullVariantId = Misc.genUID()
                     variant.source = VariantSource.REFIT
                     member.setVariant(variant, false, true)
                 }
-
                 member.variant.addMod("sc_skill_controller")
-
-                /*var moduleSlots = member.variant.moduleSlots
-                for (slot in moduleSlots) {
-                    var module = member.variant.getModuleVariant(slot)
-                    module.addMod("sc_skill_controller")
-                }*/
             }
         }
     }
@@ -330,12 +232,8 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
         "derelict_contingent",
     )
 
-    //Remove vanilla admiral skills from existing NPC fleets, mostly in case some mod overwrites the settings.json configs
     fun clearCommanderSkills() {
-
-
         var skills = commander.stats.skillsCopy.filter { it.level >= 0.1f }.filterNotNull()
-
         for (skill in ArrayList(skills)) {
             var id = skill.skill?.id ?: "skill_not_found"
             if (blacklist.contains(id)) {
@@ -344,5 +242,4 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
             }
         }
     }
-
 }

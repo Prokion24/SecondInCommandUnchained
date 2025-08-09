@@ -67,11 +67,12 @@ class AssociatesBackground : BaseCharacterBackground() {
 
         var picks = ArrayList<SCBaseAptitudePlugin>()
 
-        for (i in 0 until 3) {
+        // Изменяем количество создаваемых офицеров с 3 на базовое + часть дополнительных
+        val initialOfficersCount = 3 + (SCSettings.additionalSlots / 3).coerceAtMost(3)
+        for (i in 0 until initialOfficersCount) {
             var pick = aptitudes.randomAndRemove()
             var categories = pick.categories
 
-            //Remove aptitudes that share a category with this one
             for (cat in categories) {
                 aptitudes = aptitudes.filter { it.categories.none { it == cat } }.toMutableList()
             }
@@ -102,8 +103,11 @@ class AssociatesBackground : BaseCharacterBackground() {
             var data = SCUtils.getPlayerData()
 
             if (!SCUtils.isAssociatesBackgroundActive()) return
-            if (!SCSettings.enable4thSlot) return
-            if (data.getAssignedOfficers().filterNotNull().size > 3) return
+            if (SCSettings.additionalSlots <= 0) return
+
+            // Проверяем, есть ли свободные слоты
+            val maxSlots = 3 + SCSettings.additionalSlots
+            if (data.getAssignedOfficers().filterNotNull().size >= maxSlots) return
 
             var aptitudes = SCSpecStore.getAptitudeSpecs().map { it.getPlugin() }.filter { !it.tags.contains("restricted") }.toMutableList()
             if (!SCSettings.unrestrictedAssociates!!) {
