@@ -1,12 +1,12 @@
 {
-    "masterVersionFile":"https://raw.githubusercontent.com/Lukas22041/SecondInCommand/main/SecondInCommand.version",
+    "masterVersionFile":"https://github.com/Prokion24/SecondInCommandUnchained/blob/main/SecondInCommand.version",
     "modName":"Second-in-Command",
 	"modThreadId":30407,
     "modVersion":
     {
         "major":1,
         "minor":6,
-        "patch":5 # Can be a number, character or string (1, 2, a, b, "-RC2", etc)
+        "patch":"8 unchained" # Can be a number, character or string (1, 2, a, b, "-RC2", etc)
     },
 	
 	#Link towards a direct download, fetched from the online version file

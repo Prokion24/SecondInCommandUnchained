@@ -1,9 +1,9 @@
 {
     "id":"second_in_command", # For the convenience of troubleshooters, include your name and the mod name, not just an acronym.
 	"name":"Second-in-Command-Unchained", # Displayed to the player
-	"author":"Lukas04",
+	"author":"Lukas04 for Second in Command, Unchained by Prokion, Safety Override modifications by ymfah and Android9k, cheats by nnmnnmnmnmnmnmnmnm",
     "utility":"false",
-	"version":"1.6.5 unchained",
+	"version":"1.6.8 unchained",
 	"description":"A mod that entirely reworks the games skill system. Not compatible with other skill reworks.",
     "gameVersion": "0.98a-RC5",
   	"jars":["jars/SecondInCommand.jar"],

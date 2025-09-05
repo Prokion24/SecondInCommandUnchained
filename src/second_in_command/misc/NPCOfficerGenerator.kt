@@ -112,7 +112,7 @@ object NPCOfficerGenerator {
 
         if (SCSettings.difficulty == "Hard") {
             minSkills = 15
-            maxSkills = 15
+            maxSkills = SCSettings.maxNpcSkills
 
             combatFP *= 1.25f
             combatFP += 50
@@ -167,6 +167,11 @@ object NPCOfficerGenerator {
             skillCount = MathUtils.clamp(skillCount, 1, maxSkillCount) //Minimum of atleast 1 skill per fleet
 
             aptitudeCount += 1
+        }
+        
+        // Override aptitude count for hard difficulty
+        if (SCSettings.difficulty == "Hard") {
+            aptitudeCount = SCSettings.maxNpcAptitudes
         }
 
 

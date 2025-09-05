@@ -128,21 +128,34 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     }
 
     fun setOfficerInEmptySlotIfAvailable(officer: SCOfficer) {
-        // Check for incompatibilities
-        var categories = officer.getAptitudePlugin().categories
-        for (other in getActiveOfficers()) {
-            if (other.aptitudeId == officer.aptitudeId) return
-            var otherCategories = other.getAptitudePlugin().categories
-            if (categories.any { otherCategories.contains(it) }) {
-                return
+        // Пропускаем проверку категорий, если ограничения отключены
+        if (!SCSettings.aptitudeCategoryRestriction) {
+            var categories = officer.getAptitudePlugin().categories
+            for (other in getActiveOfficers()) {
+                if (other.aptitudeId == officer.aptitudeId) return
+                var otherCategories = other.getAptitudePlugin().categories
+                if (categories.any { otherCategories.contains(it) }) {
+                    return
+                }
             }
         }
 
-        // Find first empty slot
+        val isProgressionMode = SCSettings.progressionMode
+        val level = Global.getSector().playerPerson.stats.level
+
         for (i in 0 until activeOfficers.size) {
-            if (getOfficerInSlot(i) == null) {
-                setOfficerInSlot(i, officer)
-                return
+            if (getOfficerInSlot(i) == null) { // Проверяем на null (пустой слот)
+                val unlocked = when (i) {
+                    0 -> !isProgressionMode || level >= SCSettings.progressionSlot1Level!!
+                    1 -> !isProgressionMode || level >= SCSettings.progressionSlot2Level!!
+                    2 -> !isProgressionMode || level >= SCSettings.progressionSlot3Level!!
+                    else -> !isProgressionMode || level >= SCSettings.progressionSlot4Level!! // For slots 3+
+                }
+
+                if (unlocked) {
+                    setOfficerInSlot(i, officer)
+                    return
+                }
             }
         }
     }

@@ -31,11 +31,14 @@ class SCSkillMenuPanel(var parent: UIPanelAPI, var data: SCData, var title: Bool
     var width = 0f
     var height = 0f
     var isAtColony = false
+    var elementSize = 72f
 
     var rowParents = HashMap<Int, CustomPanelAPI>()
 
     companion object {
-        var crCost = 0.20f
+        var crCost : Float
+            get() = SCSettings.crPenalty
+            set(value) {}
         var lastScrollerY = 0f
     }
 

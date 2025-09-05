@@ -1,3 +1,47 @@
+Version 1.6.8 unchained
+
+- Merged with SiC Safety Overrides Addon
+
+
+
+Version 1.6.8
+Save Compatible
+
+- Fixed "Coordinated Maneuvers" not working with AI cores.
+- Fixed "Mass Bombardment" not applying its damage decrease correctly.
+
+
+
+Version 1.6.7
+Save Compatible
+
+-> Performance improvement for skills that reduce the effect of d-mods.
+
+
+
+Version 1.6.6
+Save Compatible
+
+- Added a config for disabling the starting bar event.
+- Added a config for adjusting how common XOs are in comm directories (None/Rare/Normal/Common)
+- Added a config for adjusting how common XOs are in derelict ships (None/Rare/Normal/Common)
+- The Comm-Panel can no longer have multiple XOs with the same aptitude be available at the same time.
+- Automation XOs are now less common on luddic colonies, and slightly more common on tritach colonies.
+- Warfare is now slightly more common on hegemony colonies, Technical is now slightly more common on Tritach colonies.
+- Engineering and Starfaring XOs are now slightly less common on Pirate/Luddic Path colonies.
+- Fixed a bug in progression mode where acquiring XOs may automaticly put them in to locked slots.
+
+
+
+Version 1.6.5 unchained
+
+- Added options for additional officer slots (0-25).
+- Added options for additional skill points (0-2).
+- Added options for disable category restriction.
+- Added options for disable group restriction.
+
+
+
 Version 1.6.5
 Save Compatible
 

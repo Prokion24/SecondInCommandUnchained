@@ -13,7 +13,6 @@ import second_in_command.specs.SCAptitudeSpec
 import second_in_command.specs.SCBaseAptitudePlugin
 import second_in_command.specs.SCSpecStore
 
-
 class AssociatesBackground : BaseCharacterBackground() {
 
     override fun getShortDescription(factionSpec: FactionSpecAPI?, factionConfig: NexFactionConfig?): String {
@@ -26,26 +25,22 @@ class AssociatesBackground : BaseCharacterBackground() {
     }
 
     fun getTooltip(tooltip: TooltipMakerAPI) {
-
         tooltip.addSpacer(10f)
 
-        var hc = Misc.getHighlightColor()
-        var nc = Misc.getNegativeHighlightColor()
+        val hc = Misc.getHighlightColor()
+        val nc = Misc.getNegativeHighlightColor()
 
-        var text = "Only aptitudes that are available as a starting option can be randomly selected for this."
-        if (SCSettings.unrestrictedAssociates!!) text = ""
+        val text = if (SCSettings.unrestrictedAssociates!!) ""
+        else "Only aptitudes that are available as a starting option can be randomly selected for this."
 
-        var label = tooltip.addPara(
-                    "You start the game with three random executive officers of different aptitudes. Those officers can never be replaced or removed from your fleet. $text\n\n" +
+        val label = tooltip.addPara(
+            "You start the game with random executive officers of different aptitudes (up to ${SCSettings.associatesSlots}). Those officers can never be replaced or removed from your fleet. $text\n\n" +
                     "The players previous experience provides them with an additional skill point for their \"Combat\" aptitude. Due to the executive officers particular nature, their experience gain is reduced by 30%.\n\n" +
                     "This background is not recommended if this is your first time using the \"Second-in-Command\" mod. ", 0f)
 
-        label.setHighlight("three random executive officers", "can never be replaced or removed", "additional skill point", "Combat", "30%", "This background is not recommended if this is your first time using the \"Second-in-Command\" mod." )
-        label.setHighlightColors(hc, nc, hc, hc, nc, nc)
-
+        label.setHighlight("random executive officers", "up to ${SCSettings.associatesSlots}", "can never be replaced or removed", "additional skill point", "Combat", "30%", "This background is not recommended if this is your first time using the \"Second-in-Command\" mod." )
+        label.setHighlightColors(hc, hc, nc, hc, hc, nc, nc)
     }
-
-
 
     override fun addTooltipForSelection(tooltip: TooltipMakerAPI?, factionSpec: FactionSpecAPI?, factionConfig: NexFactionConfig?, expanded: Boolean) {
         super.addTooltipForSelection(tooltip, factionSpec, factionConfig, expanded)
@@ -58,93 +53,74 @@ class AssociatesBackground : BaseCharacterBackground() {
     }
 
     override fun onNewGameAfterTimePass(factionSpec: FactionSpecAPI?, factionConfig: NexFactionConfig?) {
-        var data = SCUtils.getPlayerData()
+        val data = SCUtils.getPlayerData()
 
-        var aptitudes = SCSpecStore.getAptitudeSpecs().map { it.getPlugin() }.filter { !it.tags.contains("restricted") }.toMutableList()
+        // Получаем все доступные аптитуды
+        var availableAptitudes = SCSpecStore.getAptitudeSpecs()
+            .map { it.getPlugin() }
+            .filter { !it.tags.contains("restricted") }
+            .toMutableList()
+
         if (!SCSettings.unrestrictedAssociates!!) {
-            aptitudes = aptitudes.filter { it.tags.contains("startingOption") }.toMutableList() //Only pick aptitudes available from the starting interaction
+            availableAptitudes = availableAptitudes.filter { it.tags.contains("startingOption") }.toMutableList()
         }
 
-        var picks = ArrayList<SCBaseAptitudePlugin>()
+        val maxOfficers = minOf(
+            SCSettings.associatesSlots,
+            3 + SCSettings.additionalSlots,
+            availableAptitudes.size
+        )
 
-        // Изменяем количество создаваемых офицеров с 3 на базовое + часть дополнительных
-        val initialOfficersCount = 3 + (SCSettings.additionalSlots / 3).coerceAtMost(3)
-        for (i in 0 until initialOfficersCount) {
-            var pick = aptitudes.randomAndRemove()
-            var categories = pick.categories
+        val selectedOfficers = mutableListOf<SCBaseAptitudePlugin>()
 
-            for (cat in categories) {
-                aptitudes = aptitudes.filter { it.categories.none { it == cat } }.toMutableList()
+        // Режим без ограничений по категориям
+        if (SCSettings.aptitudeCategoryRestriction) {
+            // Просто выбираем случайные аптитуды без учёта категорий
+            repeat(maxOfficers) {
+                val pick = availableAptitudes.randomAndRemove() ?: return@repeat
+                selectedOfficers.add(pick)
+            }
+        }
+        // Режим с ограничениями по категориям
+        else {
+            val categorizedAptitudes = availableAptitudes.filter { it.categories.isNotEmpty() }
+            val universalAptitudes = availableAptitudes.filter { it.categories.isEmpty() }.toMutableList()
+
+            // 1. Сначала выбираем по одному представителю от каждой категории
+            val uniqueCategories = categorizedAptitudes
+                .flatMap { it.categories }
+                .distinct()
+                .shuffled()
+
+            for (category in uniqueCategories) {
+                if (selectedOfficers.size >= maxOfficers) break
+
+                val aptitudesInCategory = categorizedAptitudes.filter { it.categories.contains(category) }
+                val pick = aptitudesInCategory.randomOrNull() ?: continue
+
+                selectedOfficers.add(pick)
+                availableAptitudes.remove(pick)
             }
 
-            picks.add(pick)
+            // 2. Затем добавляем универсальные аптитуды (без категорий)
+            val remainingUniversalSlots = maxOfficers - selectedOfficers.size
+            repeat(remainingUniversalSlots) {
+                val pick = universalAptitudes.randomAndRemove() ?: return@repeat
+                selectedOfficers.add(pick)
+            }
         }
 
-        for (pick in picks) {
-            var officer = SCUtils.createRandomSCOfficer(pick.id)
-
-            officer.person.memoryWithoutUpdate.set("\$sc_associatesOfficer", true)
-
-            data.addOfficerToFleet(officer);
+        // Создаём и назначаем офицеров
+        for (aptitude in selectedOfficers) {
+            val officer = SCUtils.createRandomSCOfficer(aptitude.id).apply {
+                person.memoryWithoutUpdate.set("\$sc_associatesOfficer", true)
+            }
+            data.addOfficerToFleet(officer)
             data.setOfficerInEmptySlotIfAvailable(officer)
         }
 
+        // Даём бонусный скилл-поинт
         Global.getSector().characterData.person.stats.points += 1
-
-        Global.getSector().memoryWithoutUpdate.set("\$sc_selectedStart", true) //Prevent Initial Hiring Dialog from showing up
-
-        fillMissingSlot()
+        Global.getSector().memoryWithoutUpdate.set("\$sc_selectedStart", true)
     }
-
-
-    companion object {
-        //Called if you have an associates run with 4XOs active
-        fun fillMissingSlot() {
-            var data = SCUtils.getPlayerData()
-
-            if (!SCUtils.isAssociatesBackgroundActive()) return
-            if (SCSettings.additionalSlots <= 0) return
-
-            // Проверяем, есть ли свободные слоты
-            val maxSlots = 3 + SCSettings.additionalSlots
-            if (data.getAssignedOfficers().filterNotNull().size >= maxSlots) return
-
-            var aptitudes = SCSpecStore.getAptitudeSpecs().map { it.getPlugin() }.filter { !it.tags.contains("restricted") }.toMutableList()
-            if (!SCSettings.unrestrictedAssociates!!) {
-                aptitudes = aptitudes.filter { it.tags.contains("startingOption") }.toMutableList() //Only pick aptitudes available from the starting interaction
-            }
-
-            aptitudes = aptitudes.filter { !data.hasAptitudeInFleet(it.id) }.toMutableList()
-
-            var picks = ArrayList<SCBaseAptitudePlugin>()
-
-            for (aptitude in aptitudes) {
-
-                var valid = true
-
-                for (category in aptitude.categories) {
-                    for (active in data.getActiveOfficers()) {
-                        if (active.getAptitudePlugin().categories.contains(category)) {
-                            valid = false
-                        }
-                    }
-                }
-                if (valid) picks.add(aptitude)
-            }
-
-            var pick = picks.randomOrNull() ?: return
-
-            var officer = SCUtils.createRandomSCOfficer(pick.id)
-            officer.person.memoryWithoutUpdate.set("\$sc_associatesOfficer", true)
-
-            data.addOfficerToFleet(officer);
-            data.setOfficerInEmptySlotIfAvailable(officer)
-        }
-    }
-
-
-
-
-
-
 }

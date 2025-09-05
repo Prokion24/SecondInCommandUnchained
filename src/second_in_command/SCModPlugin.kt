@@ -132,7 +132,8 @@ class SCModPlugin : BaseModPlugin() {
         }
 
         if (Global.getSettings().modManager.isModEnabled("nexerelin")) {
-            AssociatesBackground.fillMissingSlot()
+            //AssociatesBackground.fillMissingSlot()
+            // doubles filling for associates
         }
 
         SCUtils.getPlayerData().removeExtraOfficers()
