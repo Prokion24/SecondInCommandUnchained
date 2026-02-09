@@ -6,7 +6,6 @@ import com.fs.starfarer.api.impl.campaign.ids.Abilities
 import lunalib.lunaDebug.LunaDebug
 import lunalib.lunaSettings.LunaSettings
 import second_in_command.misc.NPCFleetInflater
-import second_in_command.misc.ReflectionUtils
 import second_in_command.misc.SCSettings
 import second_in_command.misc.SpecialEventHandler
 import second_in_command.misc.backgrounds.AssociatesBackground
@@ -15,11 +14,26 @@ import second_in_command.misc.snippets.AddAllOfficersSnippet
 import second_in_command.misc.snippets.AddXPToOfficersSnippet
 import second_in_command.scripts.*
 import second_in_command.skills.engineering.scripts.CompactStorageScript
+import second_in_command.skills.scavenging.scripts.ScavengingHotbarUIScript
+import second_in_command.skills.scavenging.scripts.ScavengingLootScreenModifierScript
+import second_in_command.skills.scavenging.scripts.ScavengingScrapLootFromBattleListener
+import second_in_command.skills.scavenging.scripts.ScavengingScrapLootListener
 import second_in_command.specs.SCSpecStore
 import second_in_command.ui.intel.SectorSeedIntel
 import java.lang.Exception
 
 class SCModPlugin : BaseModPlugin() {
+
+    init {
+        //Provide a better crash message when using an outdated version, not just the "missing interface" one
+        var console = Global.getSettings().modManager.getModSpec("lw_console")
+        if (console != null) {
+            if (console.version.contains("2024") || console.version.contains("2025") || console.version.contains("2023")) {
+                throw Exception("\n\nYour version of console commands (${console.version}) is outdated. " +
+                        "Version 4.0.4 or above is required. Older versions used a different version format, and mod-managers may not link to the correct version. \n")
+            }
+        }
+    }
 
     override fun onAboutToStartGeneratingCodex() {
         CodexHandler.onAboutToStartGeneratingCodex()
@@ -42,6 +56,8 @@ class SCModPlugin : BaseModPlugin() {
         SCSpecStore.loadCategoriesFromCSV()
         SCSpecStore.loadAptitudeSpecsFromCSV()
         SCSpecStore.loadSkillSpecsFromCSV()
+
+
 
         checkForIncompatibilities()
     }
@@ -84,6 +100,7 @@ class SCModPlugin : BaseModPlugin() {
     }
 
     override fun onGameLoad(newGame: Boolean) {
+
         if (!Global.getSector().playerPerson.stats.hasSkill("sc_utility_skill")) {
             Global.getSector().playerPerson.stats.setSkillLevel("sc_utility_skill", 2f)
         }
@@ -100,12 +117,16 @@ class SCModPlugin : BaseModPlugin() {
         Global.getSector().addTransientScript(VanillaSkillsDisabler())
         Global.getSector().addTransientScript(AutomatedShipsManager())
         Global.getSector().addTransientScript(CommDirectoryRecolorScript())
+        Global.getSector().addTransientScript(ScavengingHotbarUIScript())
+        Global.getSector().addTransientScript(ScavengingLootScreenModifierScript())
 
         var compactStorageListener = CompactStorageScript()
         Global.getSector().addTransientScript(compactStorageListener)
         Global.getSector().listenerManager.addListener(compactStorageListener, true)
         //Global.getSector().addTransientScript(SectorSeedAdderScript())
         Global.getSector().listenerManager.addListener(NPCFleetInflater(), true)
+        Global.getSector().listenerManager.addListener(ScavengingScrapLootListener(), true)
+        Global.getSector().addTransientListener(ScavengingScrapLootFromBattleListener())
 
         Global.getSector().addTransientListener(SCCampaignEventListener())
         Global.getSector().addTransientScript(SCXPTracker())
@@ -136,7 +157,11 @@ class SCModPlugin : BaseModPlugin() {
             // doubles filling for associates
         }
 
+<<<<<<< HEAD
         SCUtils.getPlayerData().removeExtraOfficers()
+=======
+        SCUtils.getPlayerData().disableSlotsOverTheLimit()
+>>>>>>> upstream/main
     }
 
     override fun onNewGame() {

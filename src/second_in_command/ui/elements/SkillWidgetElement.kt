@@ -25,6 +25,8 @@ class SkillWidgetElement(var id: String, var aptitudeId: String, var activated: 
     var time = 0f
     var isElite = false
 
+    var isElite = false
+
     companion object {
         var shader = 0;
     }
@@ -137,6 +139,14 @@ class SkillWidgetElement(var id: String, var aptitudeId: String, var activated: 
             eliteBackground.renderAtCenter(x + (width / 2).toInt(), y + (height / 2).toInt())
         }
 
+        if (isElite) {
+            eliteBackground.setNormalBlend()
+            eliteBackground.color = color.darker()
+            eliteBackground.setSize(width, height)
+            eliteBackground.alphaMult = alphaMult * 0.7f
+            eliteBackground.renderAtCenter(x + (width / 2).toInt(), y + (height / 2).toInt())
+        }
+
         //Glitch Effect for Abyssal
 
         if (aptitudeId == "rat_abyssal" && activated && glitchDuration > 0 && shader != 0) {
@@ -190,8 +200,6 @@ class SkillWidgetElement(var id: String, var aptitudeId: String, var activated: 
             inactiveBorder.alphaMult = alphaMult * 0.2f
             inactiveBorder.renderAtCenter(x + (width / 2).toInt(), y + (height / 2).toInt())
         }
-
-
 
         sprite.setAdditiveBlend()
         sprite.setSize(width-8, height-8)

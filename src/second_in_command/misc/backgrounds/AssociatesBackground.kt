@@ -36,7 +36,7 @@ class AssociatesBackground : BaseCharacterBackground() {
         val label = tooltip.addPara(
             "You start the game with random executive officers of different aptitudes (up to ${SCSettings.associatesSlots}). Those officers can never be replaced or removed from your fleet. $text\n\n" +
                     "The players previous experience provides them with an additional skill point for their \"Combat\" aptitude. Due to the executive officers particular nature, their experience gain is reduced by 30%.\n\n" +
-                    "This background is not recommended if this is your first time using the \"Second-in-Command\" mod. ", 0f)
+                    "This background is not recommended if this is your first time using the \"Second-in-Command\" mod. This start ignores the \"Progression Mode\" that can be enabled in the configs.", 0f)
 
         label.setHighlight("random executive officers", "up to ${SCSettings.associatesSlots}", "can never be replaced or removed", "additional skill point", "Combat", "30%", "This background is not recommended if this is your first time using the \"Second-in-Command\" mod." )
         label.setHighlightColors(hc, hc, nc, hc, hc, nc, nc)
@@ -110,6 +110,7 @@ class AssociatesBackground : BaseCharacterBackground() {
             }
         }
 
+<<<<<<< HEAD
         // Создаём и назначаем офицеров
         for (aptitude in selectedOfficers) {
             val officer = SCUtils.createRandomSCOfficer(aptitude.id).apply {
@@ -117,10 +118,79 @@ class AssociatesBackground : BaseCharacterBackground() {
             }
             data.addOfficerToFleet(officer)
             data.setOfficerInEmptySlotIfAvailable(officer)
+=======
+        for (pick in picks) {
+            var officer = SCUtils.createRandomSCOfficer(pick.id)
+
+            officer.person.memoryWithoutUpdate.set("\$sc_associatesOfficer", true)
+
+            data.addOfficerToFleet(officer);
+            data.setOfficerInEmptySlotIfAvailable(officer, true)
+>>>>>>> upstream/main
         }
 
         // Даём бонусный скилл-поинт
         Global.getSector().characterData.person.stats.points += 1
         Global.getSector().memoryWithoutUpdate.set("\$sc_selectedStart", true)
     }
+<<<<<<< HEAD
+=======
+
+
+    companion object {
+        //Called if you have an associates run with 4XOs active
+        fun fillMissingSlot() {
+            var data = SCUtils.getPlayerData()
+
+            if (!SCUtils.isAssociatesBackgroundActive()) return
+            //if (!SCSettings.enable4thSlot) return
+            var max = SCSettings.playerOfficerSlots
+            while (data.getAssignedOfficers().filterNotNull().size < max) {
+                var aptitudes = SCSpecStore.getAptitudeSpecs().map { it.getPlugin() }.filter { !it.tags.contains("restricted") }.toMutableList()
+                if (!SCSettings.unrestrictedAssociates!!) {
+                    aptitudes = aptitudes.filter { it.tags.contains("startingOption") }.toMutableList() //Only pick aptitudes available from the starting interaction
+                }
+
+                aptitudes = aptitudes.filter { !data.hasAptitudeInFleet(it.id) }.toMutableList()
+
+                if (aptitudes.isEmpty()) {
+                    break //Break out of infinite loop if not enough aptitudes are found
+                }
+
+                var picks = ArrayList<SCBaseAptitudePlugin>()
+
+                for (aptitude in aptitudes) {
+
+                    var valid = true
+
+                    for (category in aptitude.categories) {
+                        for (active in data.getActiveOfficers()) {
+                            if (active.getAptitudePlugin().categories.contains(category)) {
+                                valid = false
+                            }
+                        }
+                    }
+                    if (valid) picks.add(aptitude)
+                }
+
+                var pick = picks.randomOrNull() ?: return
+
+                var officer = SCUtils.createRandomSCOfficer(pick.id)
+                officer.person.memoryWithoutUpdate.set("\$sc_associatesOfficer", true)
+
+                data.addOfficerToFleet(officer);
+                data.setOfficerInEmptySlotIfAvailable(officer, true)
+            }
+
+
+
+        }
+    }
+
+
+
+
+
+
+>>>>>>> upstream/main
 }

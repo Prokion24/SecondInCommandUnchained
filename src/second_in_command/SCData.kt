@@ -6,19 +6,15 @@ import com.fs.starfarer.api.campaign.BattleAPI
 import com.fs.starfarer.api.campaign.CampaignEventListener
 import com.fs.starfarer.api.campaign.CampaignFleetAPI
 import com.fs.starfarer.api.campaign.listeners.FleetEventListener
-import com.fs.starfarer.api.impl.SharedUnlockData
 import com.fs.starfarer.api.loading.VariantSource
 import com.fs.starfarer.api.util.Misc
 import second_in_command.misc.NPCOfficerGenerator
 import second_in_command.misc.SCSettings
-import second_in_command.misc.backgrounds.AssociatesBackground
-import second_in_command.misc.baseOrModSpec
 import second_in_command.misc.codex.CodexHandler
-import second_in_command.misc.logger
 import second_in_command.skills.PlayerLevelEffects
+import second_in_command.skills.scavenging.scripts.ScrapManager
 import second_in_command.specs.SCBaseSkillPlugin
 import second_in_command.specs.SCOfficer
-import java.lang.Exception
 
 //Per Fleet Data
 class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener {
@@ -28,8 +24,18 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     var faction = fleet.faction
     var commander = fleet.commander
 
+    //Part of SCData so that all fleets support scrap, and so that scrap decay exists if the aptitude is not active.
+    var scrapManager = ScrapManager(this)
+
     private var officers = ArrayList<SCOfficer>()
     private var activeOfficers = MutableList<SCOfficer?>(3 + SCSettings.additionalSlots) { null }
+
+    fun readResolve() : SCData {
+        if (scrapManager == null) {
+            scrapManager = ScrapManager(this)
+        }
+        return this
+    }
 
     init {
         removeExtraOfficers()
@@ -42,6 +48,23 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
             commander = faction.createRandomPerson()
         }
 
+<<<<<<< HEAD
+=======
+
+        while (activeOfficers.size < 10) {
+            activeOfficers.add(null)
+        }
+
+
+       /* activeOfficers.add(null)
+        activeOfficers.add(null)
+        activeOfficers.add(null)
+        activeOfficers.add(null)*/
+
+        //Causes a ConcurrentModificationError with MoreMilitaryMissions for some reason
+        //fleet.addEventListener(this)
+
+>>>>>>> upstream/main
         officers.clear()
 
         isNPC = fleet != Global.getSector().playerFleet
@@ -63,10 +86,23 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
 
     fun getActiveOfficers() = activeOfficers.filterNotNull()
 
+<<<<<<< HEAD
     fun removeExtraOfficers() {
         val maxSlots = 3 + SCSettings.additionalSlots
         if (activeOfficers.size > maxSlots) {
             activeOfficers = activeOfficers.subList(0, maxSlots).toMutableList()
+=======
+    fun disableSlotsOverTheLimit() {
+        /*if (!SCSettings.enable4thSlot && activeOfficers.filterNotNull().size > 3) {
+            setOfficerInSlot(3, null)
+        }*/
+
+        for (officer in activeOfficers) {
+            var slotIndex = activeOfficers.indexOf(officer)
+            if (SCSettings.playerOfficerSlots < slotIndex+1) {
+                setOfficerInSlot(slotIndex, null)
+            }
+>>>>>>> upstream/main
         }
     }
 
@@ -128,6 +164,7 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     }
 
     fun setOfficerInEmptySlotIfAvailable(officer: SCOfficer) {
+<<<<<<< HEAD
         // Пропускаем проверку категорий, если ограничения отключены
         if (!SCSettings.aptitudeCategoryRestriction) {
             var categories = officer.getAptitudePlugin().categories
@@ -155,6 +192,48 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
                 if (unlocked) {
                     setOfficerInSlot(i, officer)
                     return
+=======
+        setOfficerInEmptySlotIfAvailable(officer, false)
+    }
+
+    //TODO Function doesnt consider NPCs in Progression Mode, which could cause issues if it were to be used for NPC fleets
+    fun setOfficerInEmptySlotIfAvailable(officer: SCOfficer, ignoreProgressionMode: Boolean) {
+
+        //Check for incompatibilities
+        var categories = officer.getAptitudePlugin().categories
+        for (other in getActiveOfficers()) {
+
+            if (other.aptitudeId == officer.aptitudeId) return //Dont allow multiple XOs of the same aptitude
+
+            var otherCategories = other.getAptitudePlugin().categories
+
+            if (categories.any { otherCategories.contains(it) }) {
+                return
+            }
+        }
+
+        var isProgressionMode = SCSettings.progressionMode
+        var level = Global.getSector().playerPerson.stats.level
+
+        if (getOfficerInSlot(0) == null && (!isProgressionMode || level >= SCSettings.progressionSlot1Level!! || ignoreProgressionMode)) {
+            setOfficerInSlot(0, officer)
+        }
+        else if (getOfficerInSlot(1) == null && (!isProgressionMode || level >= SCSettings.progressionSlot2Level!! || ignoreProgressionMode)) {
+            setOfficerInSlot(1, officer)
+        }
+        else if (getOfficerInSlot(2) == null && (!isProgressionMode || level >= SCSettings.progressionSlot3Level!! || ignoreProgressionMode)) {
+            setOfficerInSlot(2, officer)
+        }
+        /*else if (getOfficerInSlot(3) == null && SCSettings.enable4thSlot && (!isProgressionMode || level >= SCSettings.progressionSlot4Level!! || ignoreProgressionMode)) {
+            setOfficerInSlot(3, officer)
+        }*/
+        else if (SCSettings.playerOfficerSlots > 3){
+            for (slotIndex in 3 until SCSettings.playerOfficerSlots) {
+                var progSlotLevel = SCSettings.progressionSlot3Level!! + (SCSettings.progressionModeLevelCurvePast3Slots * (slotIndex-2))
+                if (getOfficerInSlot(slotIndex) == null && (!isProgressionMode || level >= progSlotLevel || ignoreProgressionMode)) {
+                    setOfficerInSlot(slotIndex, officer)
+                    break //Exit so that multiple slots arent set to the XO
+>>>>>>> upstream/main
                 }
             }
         }
@@ -174,9 +253,27 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
             .contains(skillId)
     }
 
+    fun isAptitudeActive(aptitudeId: String) : Boolean {
+        return getAssignedOfficers().any { it?.aptitudeId == aptitudeId }
+    }
+
     fun getOfficersAssignedSlot(officer: SCOfficer) : Int? {
         if (!officer.isAssigned()) return null
+<<<<<<< HEAD
         return activeOfficers.indexOfFirst { it == officer }.takeIf { it != -1 }
+=======
+
+       /* if (getOfficerInSlot(0) == officer) return 0
+        if (getOfficerInSlot(1) == officer) return 1
+        if (getOfficerInSlot(2) == officer) return 2
+        if (getOfficerInSlot(3) == officer) return 3*/
+
+        for (slot in 0 until SCSettings.playerOfficerSlots) {
+            if (getOfficerInSlot(slot) == officer) return slot
+        }
+
+        return null
+>>>>>>> upstream/main
     }
 
     override fun isDone(): Boolean = false
@@ -184,10 +281,31 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     override fun runWhilePaused(): Boolean = true
 
     override fun advance(amount: Float) {
+<<<<<<< HEAD
+=======
+
+        //1.3.0 Update fix
+        /* if (activeOfficers.size <= 3) {
+             activeOfficers.add(null)
+         }*/
+        while (activeOfficers.size < SCSettings.playerOfficerSlots) {
+            activeOfficers.add(null)
+        }
+
+        //Has to be done to avoid ConcurrentModificationExceptions errors
+>>>>>>> upstream/main
         if (!fleet.eventListeners.contains(this) && !fleet.isDespawning) {
             fleet.addEventListener(this)
         }
 
+<<<<<<< HEAD
+=======
+        if (!fleet.hasScriptOfClass(ScrapManager::class.java)) {
+            fleet.addScript(scrapManager)
+        }
+
+
+>>>>>>> upstream/main
         for (skill in getAllActiveSkillsPlugins()) {
             skill.advance(this, amount)
         }

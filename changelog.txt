@@ -1,6 +1,84 @@
-Version 1.6.8 unchained
+Version 1.8.2-unchained
 
-- Merged with SiC Safety Overrides Addon
+- Merged with upstream version 1.8.2 (Scavenging Aptitude update)
+- Additional Officer Slots maximum increased to 25 (was 10)
+- Executive Officer Slots maximum increased to 25 (was 10)
+
+
+
+Version 1.8.2 (upstream)
+Save Compatible
+
+- Added the "Derelict Automata" skill to the Scavenging Aptitude.
+- "Another Man's Treasure" now gets the "ships are almost always recoverable" effect.
+- Slightly nerfed the chance for blueprints from the re-evaluate skill.
+
+
+
+Version 1.8.1
+Save Compatible
+
+- The Detector Relay can no longer be activated in RAT's abyssal depths.
+- Fixed dropped cargo pods being able to give scrap in some circumstances.
+
+
+
+Version 1.8.0
+Save Compatible
+
+- Added the "Scavenging" Logistical Aptitude
+--> A new aptitude focused on resource management with a scrappy theme.
+
+- Respeccing Executive Officers now costs 2 storypoints instead of 4.
+
+- Added the "Experimental" settings section to the Second-in-Command LunaSettings
+--> Replaced "Enable 4th slot" with a slider that goes between 3 to 10.
+--> Split-off the 4th NPC fleet officer in to a seperate config
+--> Added "Compact Mode", making the XO screen more compact if 4 or more XO slots are active.
+--> Moved the additional skillpoint config to this section.
+--> Added a config to disable category restrictions (for the player only).
+
+
+
+Version 1.7.0
+Save Compatible
+
+- Added Support for displaying modded skills that make use of the vanilla skill screen.
+ -> Tab button for it appears only if some mod has an aptitude to display.
+ -> Can not be used to acquire skills, just display them and track if an external event activated them.
+ -> Main purpose is to fully support the "Quality Perks" mod now, but should work with anything similar.
+
+- "Makeshift Drones" now provides 90 autopoints instead of 60.
+- "Tenacity" now only provides 75 effective armor for all hull sizes, intead of 75/100/125/150.
+- "Flux Regulation" now provides 10/1 capacity/dissipation per capacitor/vent instead of 20/2
+- "Defensive Protocols" now increases normal armor instead of effective armor and provides 10% more hitpoints.
+- "Shock Absorption" flux dissipation is now percent based instead of multiplicative.
+- "Optimised Shields" now reduces active shield flux generation by 25% instead of 50%.
+- "Compact Storage" now increases cargo capacity by 30% instead of 20%.
+- "Overclock" now also works for ballistic weapons, but has been reduced to a 10% damage increase.
+ -> Overclock will likely be changed more in a future update.
+ 
+ 
+
+Version 1.6.11
+Save Compatible
+
+- Added autocomplete support for the "LevelExecutive" and "AddExecutive" Commands
+- Updated command syntax to better match console-commands 4.0
+
+
+
+Version 1.6.10
+Save Compatible
+
+- Fixed a crash with Secrets of the Frontiers
+
+
+
+Version 1.6.9
+Save Compatible
+
+- Fixed the Associates background not ignoring progression mode and causing crashes because of it.
 
 
 
@@ -15,7 +93,7 @@ Save Compatible
 Version 1.6.7
 Save Compatible
 
--> Performance improvement for skills that reduce the effect of d-mods.
+- Performance improvement for skills that reduce the effect of d-mods.
 
 
 
@@ -30,15 +108,6 @@ Save Compatible
 - Warfare is now slightly more common on hegemony colonies, Technical is now slightly more common on Tritach colonies.
 - Engineering and Starfaring XOs are now slightly less common on Pirate/Luddic Path colonies.
 - Fixed a bug in progression mode where acquiring XOs may automaticly put them in to locked slots.
-
-
-
-Version 1.6.5 unchained
-
-- Added options for additional officer slots (0-25).
-- Added options for additional skill points (0-2).
-- Added options for disable category restriction.
-- Added options for disable group restriction.
 
 
 
