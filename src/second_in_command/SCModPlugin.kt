@@ -157,11 +157,7 @@ class SCModPlugin : BaseModPlugin() {
             // doubles filling for associates
         }
 
-<<<<<<< HEAD
-        SCUtils.getPlayerData().removeExtraOfficers()
-=======
         SCUtils.getPlayerData().disableSlotsOverTheLimit()
->>>>>>> upstream/main
     }
 
     override fun onNewGame() {

@@ -28,17 +28,13 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     var scrapManager = ScrapManager(this)
 
     private var officers = ArrayList<SCOfficer>()
-    private var activeOfficers = MutableList<SCOfficer?>(3 + SCSettings.additionalSlots) { null }
+    private var activeOfficers = MutableList<SCOfficer?>(3) { null }
 
     fun readResolve() : SCData {
         if (scrapManager == null) {
             scrapManager = ScrapManager(this)
         }
         return this
-    }
-
-    init {
-        removeExtraOfficers()
     }
 
     fun init() {
@@ -48,10 +44,8 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
             commander = faction.createRandomPerson()
         }
 
-<<<<<<< HEAD
-=======
 
-        while (activeOfficers.size < 10) {
+        while (activeOfficers.size < 30) {
             activeOfficers.add(null)
         }
 
@@ -64,7 +58,6 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
         //Causes a ConcurrentModificationError with MoreMilitaryMissions for some reason
         //fleet.addEventListener(this)
 
->>>>>>> upstream/main
         officers.clear()
 
         isNPC = fleet != Global.getSector().playerFleet
@@ -86,12 +79,6 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
 
     fun getActiveOfficers() = activeOfficers.filterNotNull()
 
-<<<<<<< HEAD
-    fun removeExtraOfficers() {
-        val maxSlots = 3 + SCSettings.additionalSlots
-        if (activeOfficers.size > maxSlots) {
-            activeOfficers = activeOfficers.subList(0, maxSlots).toMutableList()
-=======
     fun disableSlotsOverTheLimit() {
         /*if (!SCSettings.enable4thSlot && activeOfficers.filterNotNull().size > 3) {
             setOfficerInSlot(3, null)
@@ -102,7 +89,6 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
             if (SCSettings.playerOfficerSlots < slotIndex+1) {
                 setOfficerInSlot(slotIndex, null)
             }
->>>>>>> upstream/main
         }
     }
 
@@ -164,35 +150,6 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     }
 
     fun setOfficerInEmptySlotIfAvailable(officer: SCOfficer) {
-<<<<<<< HEAD
-        // Пропускаем проверку категорий, если ограничения отключены
-        if (!SCSettings.aptitudeCategoryRestriction) {
-            var categories = officer.getAptitudePlugin().categories
-            for (other in getActiveOfficers()) {
-                if (other.aptitudeId == officer.aptitudeId) return
-                var otherCategories = other.getAptitudePlugin().categories
-                if (categories.any { otherCategories.contains(it) }) {
-                    return
-                }
-            }
-        }
-
-        val isProgressionMode = SCSettings.progressionMode
-        val level = Global.getSector().playerPerson.stats.level
-
-        for (i in 0 until activeOfficers.size) {
-            if (getOfficerInSlot(i) == null) { // Проверяем на null (пустой слот)
-                val unlocked = when (i) {
-                    0 -> !isProgressionMode || level >= SCSettings.progressionSlot1Level!!
-                    1 -> !isProgressionMode || level >= SCSettings.progressionSlot2Level!!
-                    2 -> !isProgressionMode || level >= SCSettings.progressionSlot3Level!!
-                    else -> !isProgressionMode || level >= SCSettings.progressionSlot4Level!! // For slots 3+
-                }
-
-                if (unlocked) {
-                    setOfficerInSlot(i, officer)
-                    return
-=======
         setOfficerInEmptySlotIfAvailable(officer, false)
     }
 
@@ -233,7 +190,6 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
                 if (getOfficerInSlot(slotIndex) == null && (!isProgressionMode || level >= progSlotLevel || ignoreProgressionMode)) {
                     setOfficerInSlot(slotIndex, officer)
                     break //Exit so that multiple slots arent set to the XO
->>>>>>> upstream/main
                 }
             }
         }
@@ -259,9 +215,6 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
 
     fun getOfficersAssignedSlot(officer: SCOfficer) : Int? {
         if (!officer.isAssigned()) return null
-<<<<<<< HEAD
-        return activeOfficers.indexOfFirst { it == officer }.takeIf { it != -1 }
-=======
 
        /* if (getOfficerInSlot(0) == officer) return 0
         if (getOfficerInSlot(1) == officer) return 1
@@ -273,7 +226,6 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
         }
 
         return null
->>>>>>> upstream/main
     }
 
     override fun isDone(): Boolean = false
@@ -281,8 +233,6 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
     override fun runWhilePaused(): Boolean = true
 
     override fun advance(amount: Float) {
-<<<<<<< HEAD
-=======
 
         //1.3.0 Update fix
         /* if (activeOfficers.size <= 3) {
@@ -293,19 +243,15 @@ class SCData(var fleet: CampaignFleetAPI) : EveryFrameScript, FleetEventListener
         }
 
         //Has to be done to avoid ConcurrentModificationExceptions errors
->>>>>>> upstream/main
         if (!fleet.eventListeners.contains(this) && !fleet.isDespawning) {
             fleet.addEventListener(this)
         }
 
-<<<<<<< HEAD
-=======
         if (!fleet.hasScriptOfClass(ScrapManager::class.java)) {
             fleet.addScript(scrapManager)
         }
 
 
->>>>>>> upstream/main
         for (skill in getAllActiveSkillsPlugins()) {
             skill.advance(this, amount)
         }

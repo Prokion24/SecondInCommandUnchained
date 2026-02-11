@@ -54,11 +54,12 @@ class SCSettings : LunaSettingsListener {
             1440000f, //LV4*/
         )
 
-        var additionalSlots = LunaSettings.getInt(SCUtils.MOD_ID, "sc_additionalSlots") ?: 0
+
+        // Unchained settings
         var associatesSlots = LunaSettings.getInt(SCUtils.MOD_ID, "sc_associatesSlots") ?: 3
-        var aptitudeCategoryRestriction = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_aptitudeCategoryRestriction")!!
         var aptitudeGroupRestriction = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_aptitudeGroupRestriction")!!
         var xadditionalSkillpoints = LunaSettings.getInt(SCUtils.MOD_ID, "sc_xadditionalSkillpoints") ?: 0
+        var alwaysChristmas = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_alwaysChristmas")!!
 
         var xpGainMult = LunaSettings.getFloat(SCUtils.MOD_ID, "sc_officerXPMult")!!
 
@@ -142,9 +143,6 @@ class SCSettings : LunaSettingsListener {
     fun applySettings() {
         xpGainMult = LunaSettings.getFloat(SCUtils.MOD_ID, "sc_officerXPMult")!!
 
-        additionalSlots = LunaSettings.getInt(SCUtils.MOD_ID, "sc_additionalSlots") ?: 0
-        if (additionalSlots > 25) additionalSlots = 25
-
         progressionMode = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_progressionMode")!!
 
         startBarEventEnabled = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_startEvent")!!
@@ -176,6 +174,7 @@ class SCSettings : LunaSettingsListener {
         playerMaxLevel = LunaSettings.getInt(SCUtils.MOD_ID, "sc_playerMaxLevel")
 
         autoPointsMult = LunaSettings.getFloat(SCUtils.MOD_ID, "sc_autoPointsMult")!!
+        alwaysChristmas = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_alwaysChristmas")!!
 
         // Apply safety-override plugin settings
         officerMaxLevel = LunaSettings.getInt(SCUtils.MOD_ID, "sc_officerMaxLevel") ?: 5
@@ -193,6 +192,8 @@ class SCSettings : LunaSettingsListener {
 
         //Experimental
         playerOfficerSlots = LunaSettings.getInt(SCUtils.MOD_ID, "sc_xoSlotsForPlayer")!!
+        if (playerOfficerSlots < 3) playerOfficerSlots = 3
+        if (playerOfficerSlots > 30) playerOfficerSlots = 30
         progressionModeLevelCurvePast3Slots = LunaSettings.getInt(SCUtils.MOD_ID, "sc_progressionLevelPast3")!!
         enableCompactLayout = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_compactLayout")!!
         additionalLevel = LunaSettings.getBoolean(SCUtils.MOD_ID, "sc_enableAdditionalLevel")!!

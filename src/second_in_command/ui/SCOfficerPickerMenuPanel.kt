@@ -13,10 +13,6 @@ import lunalib.lunaExtensions.addLunaSpriteElement
 import lunalib.lunaExtensions.addLunaTextfield
 import lunalib.lunaUI.elements.LunaSpriteElement
 import second_in_command.SCData
-<<<<<<< HEAD
-import second_in_command.misc.*
-import second_in_command.specs.*
-=======
 import second_in_command.misc.SCSettings
 import second_in_command.misc.addNegativePara
 import second_in_command.misc.addTooltip
@@ -25,7 +21,6 @@ import second_in_command.specs.SCAptitudeSection
 import second_in_command.specs.SCCategorySpec
 import second_in_command.specs.SCOfficer
 import second_in_command.specs.SCSpecStore
->>>>>>> upstream/main
 import second_in_command.ui.elements.*
 import second_in_command.ui.panels.BackgroundPanelPlugin
 import second_in_command.ui.panels.ManagePanelPlugin
@@ -416,7 +411,7 @@ class SCOfficerPickerMenuPanel(var menu: SCSkillMenuPanel, var originalPickerEle
 
             if (officerAlreadySlotted(officer)) officerParaTextExtra = "This officer is already assigned."
             else if (doesOffficerMatchExistingAptitude(officer)) officerParaTextExtra = "Can't assign multiple officers of the same aptitude."
-            else if (!SCSettings.aptitudeCategoryRestriction && doesOffficerMatchCategory(officer)) officerParaTextExtra = "Can't assign multiple officers that are part of the same category."
+            else if (doesOffficerMatchCategory(officer)) officerParaTextExtra = "Can't assign multiple officers that are part of the same category."
 
             if (officerParaTextExtra != "") minusText = "-"
 
@@ -456,7 +451,7 @@ class SCOfficerPickerMenuPanel(var menu: SCSkillMenuPanel, var originalPickerEle
             if (selectedOfficer != null) {
                 val isBlocked = officerAlreadySlotted(selectedOfficer!!) ||
                         doesOffficerMatchExistingAptitude(selectedOfficer!!) ||
-                        (!SCSettings.aptitudeCategoryRestriction && doesOffficerMatchCategory(selectedOfficer!!))
+                        (!SCSettings.disableCategoryRestrictions && doesOffficerMatchCategory(selectedOfficer!!))
 
                 if (isBlocked) {
                     confirmButton.color = Misc.getGrayColor()
@@ -719,10 +714,6 @@ class SCOfficerPickerMenuPanel(var menu: SCSkillMenuPanel, var originalPickerEle
 
     fun selectOfficer(officer: SCOfficer) {
 
-        /*if (officerAlreadySlotted(officer) || doesOffficerMatchExistingAptitude(officer) || doesOffficerMatchCategory(officer)) {
-            Global.getSoundPlayer().playUISound("ui_button_disabled_pressed", 1f, 1f)
-            return
-        }*/
 
         Global.getSoundPlayer().playUISound("ui_button_pressed", 1f, 1f)
         selectedOfficer = officer
@@ -743,11 +734,7 @@ class SCOfficerPickerMenuPanel(var menu: SCSkillMenuPanel, var originalPickerEle
 
 
     fun doesOffficerMatchCategory(officer: SCOfficer) : Boolean {
-<<<<<<< HEAD
-        if (SCSettings.aptitudeCategoryRestriction) return false
-=======
         if (SCSettings.disableCategoryRestrictions) return false
->>>>>>> upstream/main
         var list = mutableListOf<SCCategorySpec>()
         var categories = officer.getAptitudePlugin().categories
         for (active in data.getAssignedOfficers()) {

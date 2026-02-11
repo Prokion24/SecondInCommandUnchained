@@ -25,8 +25,6 @@ class SkillWidgetElement(var id: String, var aptitudeId: String, var activated: 
     var time = 0f
     var isElite = false
 
-    var isElite = false
-
     companion object {
         var shader = 0;
     }

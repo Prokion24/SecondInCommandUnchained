@@ -16,21 +16,13 @@ import second_in_command.specs.SCBaseSkillPlugin
 class Preservation : SCBaseSkillPlugin() {
 
     companion object {
-<<<<<<< HEAD
-        var dmodSpecs = Global.getSettings().allHullModSpecs.filter { it.hasTag(Tags.HULLMOD_DMOD) }.map { it.id }
-=======
 
         var dmodSpecs = Global.getSettings().allHullModSpecs.filter { it.hasTag(Tags.HULLMOD_DMOD) }.map { it.id }
 
->>>>>>> upstream/main
         fun reapplyDmods(variant: ShipVariantAPI, hullSize: ShipAPI.HullSize?, stats: MutableShipStatsAPI) {
             if (variant.hasTag("sc_applied_dmods_this_frame")) return
             variant.addTag("sc_applied_dmods_this_frame")
 
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/main
             var hmods = variant.permaMods
             for (hmod in hmods) {
                 if (dmodSpecs.contains(hmod)) {

@@ -13,6 +13,7 @@
 .idea/**/shelf
 .idea/kotlinScripting.xml
 
+.libs/
 .idea/
 .vscode/
 .qoder/
@@ -198,3 +199,6 @@ nbdist/
 .idea/vcs.xml
 
 .idea/csv-editor.xml
+
+
+*.kts

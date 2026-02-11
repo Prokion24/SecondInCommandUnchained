@@ -67,14 +67,13 @@ class AssociatesBackground : BaseCharacterBackground() {
 
         val maxOfficers = minOf(
             SCSettings.associatesSlots,
-            3 + SCSettings.additionalSlots,
             availableAptitudes.size
         )
 
         val selectedOfficers = mutableListOf<SCBaseAptitudePlugin>()
 
         // Режим без ограничений по категориям
-        if (SCSettings.aptitudeCategoryRestriction) {
+        if (true) {
             // Просто выбираем случайные аптитуды без учёта категорий
             repeat(maxOfficers) {
                 val pick = availableAptitudes.randomAndRemove() ?: return@repeat
@@ -110,31 +109,19 @@ class AssociatesBackground : BaseCharacterBackground() {
             }
         }
 
-<<<<<<< HEAD
-        // Создаём и назначаем офицеров
-        for (aptitude in selectedOfficers) {
-            val officer = SCUtils.createRandomSCOfficer(aptitude.id).apply {
-                person.memoryWithoutUpdate.set("\$sc_associatesOfficer", true)
-            }
-            data.addOfficerToFleet(officer)
-            data.setOfficerInEmptySlotIfAvailable(officer)
-=======
-        for (pick in picks) {
+        for (pick in selectedOfficers) {
             var officer = SCUtils.createRandomSCOfficer(pick.id)
 
             officer.person.memoryWithoutUpdate.set("\$sc_associatesOfficer", true)
 
             data.addOfficerToFleet(officer);
             data.setOfficerInEmptySlotIfAvailable(officer, true)
->>>>>>> upstream/main
         }
 
         // Даём бонусный скилл-поинт
         Global.getSector().characterData.person.stats.points += 1
         Global.getSector().memoryWithoutUpdate.set("\$sc_selectedStart", true)
     }
-<<<<<<< HEAD
-=======
 
 
     companion object {
@@ -192,5 +179,4 @@ class AssociatesBackground : BaseCharacterBackground() {
 
 
 
->>>>>>> upstream/main
 }

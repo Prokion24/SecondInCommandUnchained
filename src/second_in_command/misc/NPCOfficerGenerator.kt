@@ -152,11 +152,7 @@ object NPCOfficerGenerator {
             15 -> 3
             else -> 3
         }
-<<<<<<< HEAD
-        if (SCSettings.additionalSlots > 0 && random.nextFloat() >= 0.15) {
-=======
         if (SCSettings.additionalSlotForNPCFleets && random.nextFloat() >= 0.15) {
->>>>>>> upstream/main
             if (aptitudeCount == 1) skillCount += 1
             if (aptitudeCount == 2) skillCount += MathUtils.getRandomNumberInRange(1,2)
             if (aptitudeCount == 3) skillCount += MathUtils.getRandomNumberInRange(2,4)

@@ -5,6 +5,7 @@ import com.fs.starfarer.api.characters.FullName
 import com.fs.starfarer.api.util.DelayedActionScript
 import com.fs.starfarer.api.util.Misc
 import second_in_command.SCUtils
+import second_in_command.misc.SCSettings
 import java.util.*
 
 object SpecialEventHandler {
@@ -22,7 +23,7 @@ object SpecialEventHandler {
         var day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
         var month = Calendar.getInstance().get(Calendar.MONTH)
 
-        if (month == Calendar.DECEMBER && day in 16..27) {
+        if ((month == Calendar.DECEMBER && day in 16..27) || SCSettings.alwaysChristmas) {
             isChristmas = true
         }
 
