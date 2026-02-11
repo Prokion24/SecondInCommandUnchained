@@ -1,8 +1,8 @@
 Version 1.8.2-unchained
 
 - Merged with upstream version 1.8.2 (Scavenging Aptitude update)
-- Additional Officer Slots maximum increased to 25 (was 10)
-- Executive Officer Slots maximum increased to 25 (was 10)
+- Executive Officer Slots maximum increased to 30 (was 10)
+- Added "always christmas!" setting
 
 
 
@@ -82,6 +82,12 @@ Save Compatible
 
 
 
+Version 1.6.8 unchained
+
+- Merged with SiC Safety Overrides Addon
+
+
+
 Version 1.6.8
 Save Compatible
 
@@ -108,6 +114,15 @@ Save Compatible
 - Warfare is now slightly more common on hegemony colonies, Technical is now slightly more common on Tritach colonies.
 - Engineering and Starfaring XOs are now slightly less common on Pirate/Luddic Path colonies.
 - Fixed a bug in progression mode where acquiring XOs may automaticly put them in to locked slots.
+
+
+
+Version 1.6.5 unchained
+
+- Added options for additional officer slots (0-25).
+- Added options for additional skill points (0-2).
+- Added options for disable category restriction.
+- Added options for disable group restriction.
 
 
 
